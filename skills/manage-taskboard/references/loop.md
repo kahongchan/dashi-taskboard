@@ -45,6 +45,8 @@ taskctl issue analysed ISSUE_ID --report /path/to/report.md
 taskctl issue analysed ISSUE_ID --clear
 ```
 
+The report is a Markdown file (absolute `.md` path). The card's "View report" shows the top of it on hover and the whole report in a modal, so start it with the title on line 1 and the preliminary estimate on line 2: `**初步估算：N points**（small/medium/large）`, N on the Fibonacci scale (1, 2, 3, 5, 8, 13), plus `｜Linear 現有：M` when the Linear issue already has an estimate. The estimate is advice only; never write it back to Linear.
+
 Current-sprint Defining Requirements issues are the tasks with `inScope: true` and `externalState: "Defining Requirements"`; `taskctl issue analysed` works on them too. Analyse the current sprint first and share the per-tick analysis budget between both.
 
 ## Runner heartbeat
