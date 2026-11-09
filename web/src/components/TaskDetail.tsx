@@ -112,6 +112,7 @@ type TaskDetailError = string | readonly [string, string];
 interface TaskDetailProps {
   task: Task;
   missingSprintLabel?: { sprintNumber: number; suggestedLabel: string } | null;
+  onAddSprintLabel?: (task: Task) => Promise<void>;
   tasks: Task[];
   referenceTasks: Task[];
   currentUser: ActorIdentity;
@@ -401,6 +402,7 @@ function ConversationLink({
 export function TaskDetail({
   task,
   missingSprintLabel = null,
+  onAddSprintLabel,
   tasks,
   referenceTasks,
   currentUser,
@@ -424,6 +426,7 @@ export function TaskDetail({
   onError,
 }: TaskDetailProps) {
   const { language, locale, text } = useTaskboardI18n();
+  const [addingSprintLabel, setAddingSprintLabel] = useState(false);
   const [currentTask, setCurrentTask] = useState(task);
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description);
@@ -1785,6 +1788,19 @@ export function TaskDetail({
                 {text(
                   `，这些点数才会计入 Sprint ${missingSprintLabel.sprintNumber}`,
                   ` in Linear so these points count for Sprint ${missingSprintLabel.sprintNumber}`,
+                )}
+                {onAddSprintLabel && (
+                  <button
+                    className="detail-add-sprint-label"
+                    type="button"
+                    disabled={addingSprintLabel}
+                    onClick={() => {
+                      setAddingSprintLabel(true);
+                      void onAddSprintLabel(currentTask).finally(() => setAddingSprintLabel(false));
+                    }}
+                  >
+                    {addingSprintLabel ? text("添加中…", "Adding…") : text("一键添加", "Add label")}
+                  </button>
                 )}
               </p>
             )}

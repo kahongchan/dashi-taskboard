@@ -61,6 +61,7 @@ import {
   setCurrentUserActor,
   syncJiraConnection,
   syncLinearConnection,
+  addLinearSprintLabel,
   selectLinearCycle,
   uploadAttachment,
   updateTask as updateTaskRequest,
@@ -3487,6 +3488,18 @@ export function App() {
     }
   }
 
+  async function addSprintLabel(task: Task) {
+    if (!sprintLabelCheck) return;
+    setActionError(null);
+    try {
+      const label = await addLinearSprintLabel(task.id, sprintLabelCheck.sprintNumber, sprintLabelCheck.suggestedLabel);
+      await refreshTasks(taskScopeProjectId, { quiet: true });
+      setAnnouncement(text(`已添加 label ${label}`, `Added label ${label}`));
+    } catch (error) {
+      setActionError(errorMessage(error));
+    }
+  }
+
   async function syncLinearNow(selectedCycle?: LinearCycleSelection) {
     if (linearSyncing || !selectedProjectId) return;
     setLinearSyncing(true);
@@ -4088,6 +4101,7 @@ export function App() {
             key={detailTask.id}
             task={detailTask}
             missingSprintLabel={missingLabelIds?.has(detailTask.id) ? sprintLabelCheck : null}
+            onAddSprintLabel={addSprintLabel}
             tasks={tasks.filter((task) => task.projectId === detailTask.projectId)}
             referenceTasks={referenceTasks.filter((task) => task.projectId === detailTask.projectId)}
             currentUser={currentUser}
@@ -4233,6 +4247,7 @@ export function App() {
                         tasks={definingColumnTasks}
                         presentations={taskPresentations}
                         missingLabelIds={missingLabelIds}
+                        onAddSprintLabel={addSprintLabel}
                         emptyMessage={hasActiveTaskFilters
                           ? text("当前筛选下无匹配议题", "No issues match the current filters")
                           : text("暂无议题", "No issues")}
@@ -4270,6 +4285,7 @@ export function App() {
                         tasks={qaColumnTasks}
                         presentations={taskPresentations}
                         missingLabelIds={missingLabelIds}
+                        onAddSprintLabel={addSprintLabel}
                         emptyMessage={hasActiveTaskFilters
                           ? text("当前筛选下无匹配议题", "No issues match the current filters")
                           : text("暂无议题", "No issues")}
@@ -4319,6 +4335,7 @@ export function App() {
                         nextSprintTasks={item === "todo" ? nextSprintTasks : undefined}
                         presentations={taskPresentations}
                         missingLabelIds={missingLabelIds}
+                        onAddSprintLabel={addSprintLabel}
                         emptyMessage={hasActiveTaskFilters
                           ? text("当前筛选下无匹配议题", "No issues match the current filters")
                           : text("暂无议题", "No issues")}
@@ -4360,6 +4377,7 @@ export function App() {
                     archivedTasks={filteredArchivedTasks}
                     presentations={taskPresentations}
                     missingLabelIds={missingLabelIds}
+                        onAddSprintLabel={addSprintLabel}
                     hasActiveFilters={hasActiveTaskFilters}
                     isDropTarget={otherTasksTab !== "archived" && dropTarget === otherTasksTab}
                     draggedTaskId={draggedTaskId}

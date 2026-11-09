@@ -262,6 +262,18 @@ export async function syncLinearConnection(): Promise<LinearConnection> {
   return data.connection;
 }
 
+export async function addLinearSprintLabel(
+  taskId: string,
+  sprintNumber: number,
+  suggestedLabel: string,
+): Promise<string> {
+  const data = await request<{ label: string }>(
+    `/api/local/linear-connection/tasks/${encodeURIComponent(taskId)}/sprint-label`,
+    { method: "POST", body: JSON.stringify({ sprintNumber, suggestedLabel }) },
+  );
+  return data.label;
+}
+
 export async function getProjectSummary(
   projectId: string,
   signal?: AbortSignal,
