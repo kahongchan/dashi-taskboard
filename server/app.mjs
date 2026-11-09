@@ -2159,6 +2159,20 @@ export function createTaskboardServer(options = {}) {
         return sendJson(response, 200, { connection });
       }
 
+      const sprintLabelRoute = pathname.match(/^\/api\/local\/linear-connection\/tasks\/([^/]+)\/sprint-label$/);
+      if (sprintLabelRoute) {
+        if (request.method !== "POST") return methodNotAllowed(response, ["POST"]);
+        const task = database.getTask(decodeURIComponent(sprintLabelRoute[1]));
+        if (!task || task.source !== "linear") throw new ApiError(404, "TASK_NOT_FOUND", "Linear 任务不存在");
+        const body = await readJson(request);
+        if (!Number.isInteger(body?.sprintNumber) || typeof body?.suggestedLabel !== "string") {
+          throw new ApiError(400, "INVALID_SPRINT_LABEL", "需要 sprintNumber 和 suggestedLabel");
+        }
+        const label = await linear.addSprintLabel(task, body.sprintNumber, body.suggestedLabel);
+        events.emit("project.labels.updated", { project: database.getProject(LINEAR_PROJECT_ID) });
+        return sendJson(response, 200, { label });
+      }
+
       const projectMappingRoute = pathname.match(/^\/api\/local\/project-mappings\/([^/]+)$/);
       if (projectMappingRoute) {
         if (request.method !== "PUT") return methodNotAllowed(response, ["PUT"]);

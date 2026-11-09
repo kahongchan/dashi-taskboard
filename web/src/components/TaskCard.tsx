@@ -34,6 +34,7 @@ interface TaskCardProps {
   variant?: "main" | "sidebar";
   presentation: TaskCardPresentation;
   missingSprintLabel?: boolean;
+  onAddSprintLabel?: (task: Task) => Promise<void>;
   isDragging: boolean;
   dragShift: number;
   isMoving: boolean;
@@ -452,6 +453,7 @@ export function TaskCard({
   variant = "main",
   presentation,
   missingSprintLabel = false,
+  onAddSprintLabel,
   isDragging,
   dragShift,
   isMoving,
@@ -475,6 +477,7 @@ export function TaskCard({
 }: TaskCardProps) {
   const { locale, text } = useTaskboardI18n();
   const displayIdentifier = task.externalKey ?? task.identifier;
+  const [addingSprintLabel, setAddingSprintLabel] = useState(false);
   const [propertyMenu, setPropertyMenu] = useState<"priority" | "labels" | "assignee" | null>(null);
   const [savingProperty, setSavingProperty] = useState<"priority" | "labels" | "dueDate" | "assignee" | null>(null);
   const creator: ActorIdentity = {
@@ -601,7 +604,23 @@ export function TaskCard({
       <h3 id={`task-${task.id}-title`}>{task.title}</h3>
 
       {missingSprintLabel && (
-        <p className="task-card-missing-label">{text("缺少 sprint label", "Missing sprint label")}</p>
+        <p className="task-card-missing-label">
+          {text("缺少 sprint label", "Missing sprint label")}
+          {onAddSprintLabel && (
+            <button
+              className="task-card-add-sprint-label"
+              type="button"
+              disabled={addingSprintLabel}
+              onClick={(event) => {
+                event.stopPropagation();
+                setAddingSprintLabel(true);
+                void onAddSprintLabel(task).finally(() => setAddingSprintLabel(false));
+              }}
+            >
+              {addingSprintLabel ? text("添加中…", "Adding…") : text("一键添加", "Add label")}
+            </button>
+          )}
+        </p>
       )}
       {task.status === "todo" && task.startedOutsideAt && (
         <p className="task-card-started-outside">{text("已在循环外开始", "Started outside the loop")}</p>

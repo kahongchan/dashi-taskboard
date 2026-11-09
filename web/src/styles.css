@@ -10289,6 +10289,25 @@ kbd {
   line-height: 1.5;
 }
 
+.task-card-add-sprint-label,
+.detail-add-sprint-label {
+  margin-left: 8px;
+  padding: 1px 8px;
+  border: 1px solid var(--danger);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--danger);
+  font: inherit;
+  font-weight: 590;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.task-card-add-sprint-label:hover:not(:disabled),
+.detail-add-sprint-label:hover:not(:disabled) {
+  background: var(--danger-soft);
+}
+
 .detail-missing-label code {
   font-weight: 590;
 }

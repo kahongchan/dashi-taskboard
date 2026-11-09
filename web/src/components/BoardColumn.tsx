@@ -28,6 +28,7 @@ interface BoardColumnProps {
   nextSprintTasks?: Task[];
   presentations: Record<string, TaskCardPresentation>;
   missingLabelIds?: ReadonlySet<string> | null;
+  onAddSprintLabel?: (task: Task) => Promise<void>;
   emptyMessage: string;
   isDropTarget: boolean;
   draggedTaskId: string | null;
@@ -67,6 +68,7 @@ export function BoardColumn({
   nextSprintTasks = [],
   presentations,
   missingLabelIds = null,
+  onAddSprintLabel,
   emptyMessage,
   isDropTarget,
   draggedTaskId,
@@ -192,6 +194,7 @@ export function BoardColumn({
         task={task}
         presentation={presentations[task.id]}
         missingSprintLabel={missingLabelIds?.has(task.id) === true}
+        onAddSprintLabel={onAddSprintLabel}
         isDragging={draggedTaskId === task.id}
         dragShift={dragShift}
         isMoving={movingTaskId === task.id}

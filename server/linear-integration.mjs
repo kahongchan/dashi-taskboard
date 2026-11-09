@@ -145,6 +145,12 @@ const ISSUE_UPDATE_MUTATION = `
   }
 `;
 
+const SPRINT_LABELS_QUERY = `
+  query TaskboardSprintLabels($marker: String!) {
+    issueLabels(filter: { name: { contains: $marker } }, first: 50) { nodes { id name } }
+  }
+`;
+
 function stateKey(name) {
   return String(name ?? "").trim().toLowerCase();
 }
@@ -738,6 +744,33 @@ export function createLinearIntegration({
       const config = await configStore.read();
       await assertOwnedTask(config, task);
       await writeStatus(config, task, status);
+    },
+    // Adds the selected cycle's sprint label (for example "1.82.0 (Sprint 92)") in Linear.
+    async addSprintLabel(task, sprintNumber, suggestedLabel) {
+      const config = await configStore.read();
+      await assertOwnedTask(config, task);
+      const marker = `(Sprint ${sprintNumber})`;
+      const labels = (await graphql(config, SPRINT_LABELS_QUERY, { marker })).issueLabels?.nodes ?? [];
+      const label = labels.find((candidate) => candidate.name === suggestedLabel)
+        ?? (labels.length === 1 ? labels[0] : null);
+      if (!label) {
+        throw new ApiError(
+          409,
+          "LINEAR_SPRINT_LABEL_UNAVAILABLE",
+          labels.length === 0
+            ? `Linear 中没有包含“${marker}”的 label，请先在 Linear 创建`
+            : `Linear 中有多个包含“${marker}”的 label，请在 Linear 中选择`,
+        );
+      }
+      const data = await graphql(config, ISSUE_UPDATE_MUTATION, {
+        id: task.externalKey,
+        input: { addedLabelIds: [label.id] },
+      });
+      if (data.issueUpdate?.success !== true) {
+        throw new ApiError(409, "LINEAR_REQUEST_FAILED", "Linear 未能更新此任务");
+      }
+      await runInOrder(() => syncWithConfig(config, { archiveMissing: false }));
+      return label.name;
     },
   };
 }
